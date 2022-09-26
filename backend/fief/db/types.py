@@ -8,6 +8,7 @@ from sqlalchemy import engine
 
 class DatabaseType(str, Enum):
     POSTGRESQL = "POSTGRESQL"
+    COCKROACHDB = "COCKROACHDB"
     MYSQL = "MYSQL"
     SQLITE = "SQLITE"
 
@@ -33,17 +34,20 @@ SSLMode = Union[PostreSQLSSLMode, MySQLSSLMode]
 
 SSL_MODES: Dict[DatabaseType, Type[SSLMode]] = {
     DatabaseType.POSTGRESQL: PostreSQLSSLMode,
+    DatabaseType.COCKROACHDB: PostreSQLSSLMode,
     DatabaseType.MYSQL: MySQLSSLMode,
 }
 
 SYNC_DRIVERS: Dict[DatabaseType, str] = {
     DatabaseType.POSTGRESQL: "postgresql",
+    DatabaseType.COCKROACHDB: "cockroachdb",
     DatabaseType.MYSQL: "mysql+pymysql",
     DatabaseType.SQLITE: "sqlite",
 }
 
 ASYNC_DRIVERS: Dict[DatabaseType, str] = {
     DatabaseType.POSTGRESQL: "postgresql+asyncpg",
+    DatabaseType.COCKROACHDB: "cockroachdb+asyncpg",
     DatabaseType.MYSQL: "mysql+aiomysql",
     DatabaseType.SQLITE: "sqlite+aiosqlite",
 }
