@@ -79,6 +79,61 @@
       "contributions": [
         "translation"
       ]
+    },
+    {
+      "login": "WilliamMayor",
+      "name": "William Mayor",
+      "avatar_url": "https://avatars.githubusercontent.com/u/403126?v=4",
+      "profile": "https://github.com/WilliamMayor",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "ruipoliveira",
+      "name": "Rui Oliveira",
+      "avatar_url": "https://avatars.githubusercontent.com/u/10942886?v=4",
+      "profile": "http://ruipoliveira.github.io/",
+      "contributions": [
+        "translation",
+        "code"
+      ]
+    },
+    {
+      "login": "JimScope",
+      "name": "Jimmy Angel Pérez Díaz",
+      "avatar_url": "https://avatars.githubusercontent.com/u/27647007?v=4",
+      "profile": "https://jimscope.is-a.dev",
+      "contributions": [
+        "translation"
+      ]
+    },
+    {
+      "login": "michaldev",
+      "name": "Michał Rosiak",
+      "avatar_url": "https://avatars.githubusercontent.com/u/5132385?v=4",
+      "profile": "https://pasteman.dev/",
+      "contributions": [
+        "translation"
+      ]
+    },
+    {
+      "login": "olimcc",
+      "name": "olimcc",
+      "avatar_url": "https://avatars.githubusercontent.com/u/842983?v=4",
+      "profile": "http://www.olimcc.com",
+      "contributions": [
+        "security"
+      ]
+    },
+    {
+      "login": "jhamman",
+      "name": "Joe Hamman",
+      "avatar_url": "https://avatars.githubusercontent.com/u/2443309?v=4",
+      "profile": "http://joehamman.com",
+      "contributions": [
+        "security"
+      ]
     }
   ],
   "contributorsPerLine": 7,
@@ -86,5 +141,6 @@
   "projectOwner": "fief-dev",
   "repoType": "github",
   "repoHost": "https://github.com",
-  "skipCi": true
+  "skipCi": true,
+  "commitConvention": "angular"
 }

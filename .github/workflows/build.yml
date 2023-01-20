@@ -5,21 +5,17 @@ on:
   pull_request:
 
 jobs:
-  lint-backend:
+  lint:
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v3
-      - name: "Checkout with private submodules if possible"
-        uses: ./.github/actions/checkout
-        with:
-          github_token: ${{ secrets.GH_GLOBAL_TOKEN }}
-      - name: Lint backend
-        uses: ./.github/actions/lint-backend
+      - name: Lint
+        uses: ./.github/actions/lint
 
-  test-backend:
+  test:
     runs-on: ubuntu-latest
-    needs: [lint-backend]
+    needs: [lint]
 
     services:
       postgres:
@@ -43,23 +39,40 @@ jobs:
         env:
           MARIADB_ROOT_PASSWORD: fiefpassword
 
+      mysql:
+        image: mysql
+        ports:
+          - 3307:3306
+        env:
+          MYSQL_ROOT_PASSWORD: fiefpassword
+
     strategy:
       fail-fast: false
       matrix:
         include:
-          - database_type: POSTGRESQL
+          - name: POSTGRESQL
+            database_type: POSTGRESQL
             database_host: localhost
             database_port: 5432
             database_username: fief
             database_password: fiefpassword
             database_ssl_mode: disable
-          - database_type: MYSQL
+          - name: MARIADB
+            database_type: MYSQL
             database_host: localhost
             database_port: 3306
             database_username: root
             database_password: fiefpassword
             database_ssl_mode: DISABLED
-          - database_type: SQLITE
+          - name: MYSQL
+            database_type: MYSQL
+            database_host: localhost
+            database_port: 3307
+            database_username: root
+            database_password: fiefpassword
+            database_ssl_mode: DISABLED
+          - name: SQLITE
+            database_type: SQLITE
             database_host: null
             database_port: null
             database_username: null
@@ -68,12 +81,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - name: "Checkout with private submodules if possible"
-        uses: ./.github/actions/checkout
-        with:
-          github_token: ${{ secrets.GH_GLOBAL_TOKEN }}
-      - name: Test backend with ${{ matrix.database_type }} database
-        uses: ./.github/actions/test-backend
+      - name: Test with ${{ matrix.name }} database
+        uses: ./.github/actions/test
         with:
           database_type: ${{ matrix.database_type }}
           database_host: ${{ matrix.database_host }}
@@ -82,49 +91,19 @@ jobs:
           database_password: ${{ matrix.database_password }}
           database_name: fief
 
-  test-admin-frontend:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v3
-      - name: "Checkout with private submodules if possible"
-        uses: ./.github/actions/checkout
-        with:
-          github_token: ${{ secrets.GH_GLOBAL_TOKEN }}
-      - name: Test admin frontend
-        uses: ./.github/actions/test-admin-frontend
-
-  build-admin-frontend:
-    runs-on: ubuntu-latest
-    needs: [test-admin-frontend]
-
-    steps:
-      - uses: actions/checkout@v3
-      - name: "Checkout with private submodules if possible"
-        uses: ./.github/actions/checkout
-        with:
-          github_token: ${{ secrets.GH_GLOBAL_TOKEN }}
-      - name: Build admin frontend
-        uses: ./.github/actions/build-admin-frontend
-
   pypi-release:
     runs-on: ubuntu-latest
-    needs: [test-backend, build-admin-frontend]
+    needs: [test]
     if: startsWith(github.ref, 'refs/tags/')
 
     steps:
       - uses: actions/checkout@v3
-      - name: "Checkout with private submodules if possible"
-        uses: ./.github/actions/checkout
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
         with:
-          github_token: ${{ secrets.GH_GLOBAL_TOKEN }}
-      - name: Set up Python 3.10
-        uses: actions/setup-python@v2
-        with:
-          python-version: "3.10"
+          python-version: "3.11"
       - name: Install dependencies
         shell: bash
-        working-directory: backend
         run: |
           python -m pip install --upgrade pip
           pip install hatch
@@ -134,20 +113,13 @@ jobs:
           node-version: "14"
       - name: Install Node dependencies
         shell: bash
-        working-directory: backend
         run: |
           npm ci
-      - name: Compile translations and build CSS
+      - name: Compile translations and build assets
         shell: bash
-        working-directory: backend
         run: |
-          pybabel compile --domain=messages --directory=fief/locale
-          npm run build:css
-      - name: Download frontend build
-        uses: actions/download-artifact@v2
-        with:
-          name: admin-frontend-build
-          path: backend/fief/static/frontend
+          hatch run translations.compile
+          hatch run static.build
       - name: Build and publish on PyPI
         env:
           HATCH_INDEX_USER: ${{ secrets.HATCH_INDEX_USER }}
@@ -160,7 +132,7 @@ jobs:
         with:
           draft: true
           body: ${{ github.event.head_commit.message }}
-          artifacts: backend/dist/*.whl,backend/dist/*.tar.gz
+          artifacts: dist/*.whl,dist/*.tar.gz
           token: ${{ secrets.GITHUB_TOKEN }}
 
   docker-release:
@@ -173,10 +145,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - name: "Checkout with private submodules if possible"
-        uses: ./.github/actions/checkout
-        with:
-          github_token: ${{ secrets.GH_GLOBAL_TOKEN }}
       - name: Wait package to be truly available from PyPI
         shell: bash
         run: |
